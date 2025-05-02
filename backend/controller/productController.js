@@ -9,7 +9,7 @@ dotenv.config();
 
 export const createProductController = async (req, res) => {
   try {
-    const { name, description, price, category, quantity } = req.fields;
+    const { name, description, price, category, quantity, bulkDiscounts } = req.fields;
     const { photo } = req.files;
     switch (true) {
       case !name:
@@ -28,7 +28,15 @@ export const createProductController = async (req, res) => {
           .send({ error: "photo is Required and should be less then 1mb" });
     }
 
-    const products = new productModel({ ...req.fields, slug: slugify(name) });
+    const productFields = { ...req.fields, slug: slugify(name) };
+    if (bulkDiscounts) {
+      try {
+        productFields.bulkDiscounts = JSON.parse(bulkDiscounts);
+      } catch (e) {
+        productFields.bulkDiscounts = [];
+      }
+    }
+    const products = new productModel(productFields);
     if (photo) {
       products.photo.data = fs.readFileSync(photo.path);
       products.photo.contentType = photo.type;
@@ -129,7 +137,7 @@ export const deleteProductController = async (req, res) => {
 
 export const updateProductController = async (req, res) => {
   try {
-    const { name, description, price, photo, category, quantity } = req.fields;
+    const { name, description, price, photo, category, quantity, bulkDiscounts } = req.fields;
     //Validation
     switch (true) {
       case !name:
@@ -148,9 +156,17 @@ export const updateProductController = async (req, res) => {
       //     .send({ error: "PushSubscriptionOptions is Required" });
     }
 
+    const updateFields = { ...req.fields, slug: slugify(name) };
+    if (bulkDiscounts) {
+      try {
+        updateFields.bulkDiscounts = JSON.parse(bulkDiscounts);
+      } catch (e) {
+        updateFields.bulkDiscounts = [];
+      }
+    }
     const products = await productModel.findByIdAndUpdate(
       req.params.pid,
-      { ...req.fields, slug: slugify(name) },
+      updateFields,
       { new: true }
     );
 

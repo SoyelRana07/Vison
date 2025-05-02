@@ -34,6 +34,12 @@ const productSchema = new mongoose.Schema(
     // shipping: {
     //   type: Boolean,
     // },
+    bulkDiscounts: [
+      {
+        quantity: { type: Number, required: true },
+        discount: { type: Number, required: true }, // percentage, e.g. 5 for 5%
+      },
+    ],
   },
   { timestamps: true }
 );
